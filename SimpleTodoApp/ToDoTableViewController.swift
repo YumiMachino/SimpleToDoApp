@@ -5,6 +5,7 @@
 //  Created by Yumi Machino on 2021/01/09.
 //
 
+// Edit, delete not yet fixed
 import UIKit
 
 class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
@@ -21,7 +22,6 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
         ToDoItem(title:"Go to grocery shopping", priorityLevel: priorityLevel.low, isCompletedIndicator: false)
     ]
     
-  
     var sections:[String] = ["High Priority", "Medium Priority", "Low Priority"]
 
     var highPriorityItem:[ToDoItem] = []
@@ -44,11 +44,7 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
         tableView.estimatedRowHeight = 50
         sortItemsPerPriority()
 //        tableView.allowsMultipleSelectionDuringEditing = true
-
-
     }
-    
-
     
     @objc
     func addToDoItem(){
@@ -84,20 +80,25 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
     }
     
     // delegate method from TVC: editin existing item
+    // high priority itemでもedit後にdefaultでmediumにしてるからエラ- ?
     func edit(_ toDoItem: ToDoItem) {
         print("editing")
-     
-        // nil
+    
+        // why nil?
         print(tableView.indexPathForSelectedRow?.row )
         
         if let indexPath = tableView.indexPathForSelectedRow {
             print(indexPath)            // [0,1]
             switch indexPath.section {
             case 0:
+                // override priority?
                 print("highPriorityItem")
                 if let row = tableView.indexPathForSelectedRow?.row {
                     // update model
                     highPriorityItem.remove(at: row)
+                    print(toDoItem)
+                    print(toDoItem.priorityLevel)
+//                    toDoItem.priorityLevel = priorityLevel.high
                     highPriorityItem.insert(toDoItem, at: row)
                     
                     // update view
@@ -122,7 +123,7 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
             default:
             print("Editing error")
             }
-        
+            toDoitemsUpdate()
             tableView.reloadData()
         }
     }
@@ -152,7 +153,6 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
     
     
     // MARK: - Table view data source
-
     override func numberOfSections(in tableView: UITableView) -> Int {
         return sections.count
     }
@@ -178,7 +178,7 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
     
     // REUSABLE CELL
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        toDoitemsUpdate()
+//        toDoitemsUpdate()
         
         // Create reusableCell
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId , for: indexPath) as! TodoItemTableViewCell
@@ -209,7 +209,6 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
     }
     
      
-
     // MOVE ROW: use with showsReorderControl
     override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
 
@@ -263,14 +262,11 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
         }
         // update model
         toDoitemsUpdate()
-
     }
-    
-    
     
     //DESELECT ROW
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+//        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     
