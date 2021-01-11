@@ -31,10 +31,6 @@ class AddEditToDoItemTableViewController: UITableViewController {
             textFieldCell.itemTextField.text = item?.title
         }
         
-        
-        
-    
-        
         // cancel button
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(dismissTVC))
         
@@ -62,11 +58,13 @@ class AddEditToDoItemTableViewController: UITableViewController {
         // 1. create a new item
          // 2. pass the item back to ToDoTVC, and append
          // 3. update table view
+        print("SaveBtn tapped")
         let newItem = ToDoItem(title: textFieldCell.itemTextField.text!, priorityLevel: .medium, isCompletedIndicator: false)
         if self.item == nil {
         delegate?.add(newItem)                     // delegateした先のadd
         } else {
         delegate?.edit(newItem)
+        print(newItem)
         }
         dismiss(animated: true, completion: nil)
     }

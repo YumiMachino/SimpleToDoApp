@@ -10,9 +10,8 @@ import UIKit
 class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
     let cellId = "toDoItemCell"
     
-    // Data Source
     var toDoItems: [ToDoItem] = [
-        ToDoItem(title:"Take a walk", priorityLevel: priorityLevel.high, isCompletedIndicator: true),
+        ToDoItem(title:"Take a walk", priorityLevel: priorityLevel.high, isCompletedIndicator: false),
         ToDoItem(title:"Study Design pattern", priorityLevel: priorityLevel.high, isCompletedIndicator: false),
         ToDoItem(title:"Study iOS", priorityLevel: priorityLevel.medium, isCompletedIndicator: false),
         ToDoItem(title:"Update Resume", priorityLevel: priorityLevel.medium, isCompletedIndicator: false),
@@ -22,19 +21,20 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
         ToDoItem(title:"Go to grocery shopping", priorityLevel: priorityLevel.low, isCompletedIndicator: false)
     ]
     
+  
     var sections:[String] = ["High Priority", "Medium Priority", "Low Priority"]
 
     var highPriorityItem:[ToDoItem] = []
     var mediumPriorityItem:[ToDoItem] = []
     var lowPriorityItem:[ToDoItem] = []
     
-    
+    // MARK: - ViewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         navigationController?.navigationBar.prefersLargeTitles = true
         title = "ToDo Items"
-    
+
         navigationItem.leftBarButtonItem = editButtonItem
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addToDoItem))
         tableView.register(TodoItemTableViewCell.self, forCellReuseIdentifier: cellId)
@@ -43,9 +43,13 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 50
         sortItemsPerPriority()
-     
-    }
+//        tableView.allowsMultipleSelectionDuringEditing = true
 
+
+    }
+    
+
+    
     @objc
     func addToDoItem(){
         // present modally (AddEditToDoItemTVC)
@@ -55,8 +59,16 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
         present(addEditNC,animated: true,completion: nil)
     }
     
+    func toDoitemsUpdate(){
+        toDoItems = []
+        toDoItems = highPriorityItem + mediumPriorityItem + lowPriorityItem
+    }
+    
+    // delegate method from TVC: adding new item
     func add(_ toDoItem: ToDoItem) {
         toDoItems.append(toDoItem)
+        print("added item: \(toDoItem)")
+        
         switch toDoItem.priorityLevel {
         case .high:
             highPriorityItem.append(toDoItem)
@@ -68,19 +80,29 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
             lowPriorityItem.append(toDoItem)
             tableView.insertRows(at: [IndexPath(row: lowPriorityItem.count - 1, section: 2)], with: .automatic)
         }
+        toDoitemsUpdate()
     }
     
-    
+    // delegate method from TVC: editin existing item
     func edit(_ toDoItem: ToDoItem) {
+        print("editing")
+     
+        // nil
+        print(tableView.indexPathForSelectedRow?.row )
+        
         if let indexPath = tableView.indexPathForSelectedRow {
+            print(indexPath)            // [0,1]
             switch indexPath.section {
             case 0:
+                print("highPriorityItem")
                 if let row = tableView.indexPathForSelectedRow?.row {
                     // update model
                     highPriorityItem.remove(at: row)
                     highPriorityItem.insert(toDoItem, at: row)
+                    
                     // update view
                     tableView.reloadRows(at: [indexPath], with: .automatic)
+                    tableView.reloadData()
                     tableView.deselectRow(at: indexPath, animated: true)
                 }
             case 1:
@@ -100,14 +122,13 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
             default:
             print("Editing error")
             }
+        
+            tableView.reloadData()
         }
     }
     
-    
-    
-    
-    
-    func sortItemsPerPriority(){
+
+    func sortItemsPerPriority() {
         // Create different array depends on priorities
         for item in toDoItems {
             if item.priorityLevel == .high {
@@ -120,6 +141,12 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
                 print("error: no priority defined")
             }
         }
+//        var sortedToDoItems:[[ToDoItem]] = []
+//        sortedToDoItems.append(highPriorityItem)
+//        sortedToDoItems.append(mediumPriorityItem)
+//        sortedToDoItems.append(lowPriorityItem)
+//        print(sortedToDoItems)
+//        return sortedToDoItems
     }
     
     
@@ -151,6 +178,8 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
     
     // REUSABLE CELL
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        toDoitemsUpdate()
+        
         // Create reusableCell
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId , for: indexPath) as! TodoItemTableViewCell
         cell.showsReorderControl = true
@@ -229,26 +258,31 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
             default:
                 print("")
             }
-
         default:
             print("")
         }
         // update model
-        toDoItems = []
-        toDoItems = highPriorityItem + mediumPriorityItem  + lowPriorityItem
+        toDoitemsUpdate()
 
     }
     
     
     
-    //CHECKMARK
+    //DESELECT ROW
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    
+    // ACCESSORY BUTTON
+    override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
         let addEditTVC = AddEditToDoItemTableViewController(style: .insetGrouped)
         addEditTVC.delegate = self
+        
         switch indexPath.section {
         case 0:
+            // addEditTVCのitemに設定 -> edit中のToDoItem確認
             addEditTVC.item = highPriorityItem[indexPath.row]           // copy
-    
         case 1:
             addEditTVC.item = mediumPriorityItem[indexPath.row]
         case 2:
@@ -259,54 +293,9 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
         
         let addEditNC = UINavigationController(rootViewController: addEditTVC)
         present(addEditNC,animated: true,completion: nil)
-        
-        
-        
-        
-        
-        
-        print(indexPath)        // [0,0]-> get object
-        // update model and view
-        switch indexPath.section {
-        case 0:
-            var item = highPriorityItem[indexPath.row]
-            print(item)
-            if item.isCompletedIndicator == false {
-                item.isCompletedIndicator = true
-                print(item)
-                // update view
-                
-            } else if item.isCompletedIndicator == true {
-                item.isCompletedIndicator = false
-            }
-        case 1:
-            var item = mediumPriorityItem[indexPath.row]
-            if item.isCompletedIndicator == false {
-                item.isCompletedIndicator = true
-            } else if item.isCompletedIndicator == true {
-                item.isCompletedIndicator = false
-            }
-        case 2:
-            var item = lowPriorityItem[indexPath.row]
-            if item.isCompletedIndicator == false {
-                item.isCompletedIndicator = true
-            } else if item.isCompletedIndicator == true {
-                item.isCompletedIndicator = false
-            }
-        default:
-            print("")
-        }
-//
-//        if tableView.cellForRow(at: indexPath)?.accessoryType == UITableViewCell.AccessoryType.checkmark {
-//            tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.none
-//            // delegate and update model?
-//        } else {
-//            tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.checkmark
-//
-//        }
+    
     }
     
-
     
     //SECTION HEADER
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -314,12 +303,33 @@ class ToDoTableViewController: UITableViewController, AddEditToDoTVCDelegate {
     }
     
     // DELETE
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        if editingStyle == .delete {
-//            toDoItems.remove(at: indexPath.row)
-//            tableView.deleteRows(at: [indexPath], with: .automatic)
-//        }
-//    }
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        
+        if editingStyle == .delete {
+            print("Delete")
+            switch indexPath.section {
+            case 0:
+                highPriorityItem.remove(at: indexPath.row)
+                print(highPriorityItem)
+                print(indexPath)
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+                
+            case 1:
+                mediumPriorityItem.remove(at: indexPath.row)
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+                
+            case 2:
+                lowPriorityItem.remove(at: indexPath.row)
+                tableView.reloadRows(at: [indexPath], with: .automatic)
+            
+            default:
+                print("error")
+            }
+            toDoitemsUpdate()
+            tableView.reloadData()
+
+        }
+    }
 
 
  

@@ -26,14 +26,13 @@ class TodoItemTableViewCell: UITableViewCell {
     
     var priorityLevel:priorityLevel = .medium
     
-    
+    var isCompletedIndicator: Bool = false
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .value1, reuseIdentifier: reuseIdentifier)
             let hStackView = HorizontalStackView(arrangedSubviews: [checkmarkLabel,titleLabel, imgLabel],spacing: 16, alignment: .fill,distribution: .fill)
             contentView.addSubview(hStackView)
         hStackView.matchParent(padding: .init(top: 8, left: 16, bottom: 16, right: 8))
-      
         }
     
     
@@ -47,7 +46,22 @@ class TodoItemTableViewCell: UITableViewCell {
         titleLabel.text = toDoItem.title
         priorityLevel = toDoItem.priorityLevel
     }
-        
     
+    
+    // checkmark
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+        guard isSelected else {return }
+        
+        if self.isCompletedIndicator == true {
+            self.isCompletedIndicator = false
+            self.checkmarkLabel.text = " "
+        } else {
+            self.isCompletedIndicator = true
+            self.checkmarkLabel.text = "✔️"
+        }
+    }
+        
+  
 
 }
